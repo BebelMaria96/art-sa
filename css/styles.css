@@ -303,3 +303,87 @@ a.block, button.block { display: block; width: 100%; text-align: left; cursor: p
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* ============================================================
+   Camada de hábito: deixa, rotina, recompensa
+   ============================================================ */
+
+/* deixa */
+.loop-cue {
+  display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+  border: 1px dashed var(--line); border-radius: var(--radius);
+  padding: .85rem 1.1rem; margin-top: 1.2rem; cursor: pointer;
+  transition: border-color .25s var(--ease);
+}
+.loop-cue:hover { border-color: var(--ink-faint); }
+.loop-cue__k { font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-faint); }
+.loop-cue__v { font-family: var(--reading); font-size: 1rem; color: var(--ink); }
+.loop-cue__edit { margin-left: auto; font-size: .76rem; color: var(--ink-faint); }
+
+/* recompensa / momentum */
+.momentum {
+  margin-top: 1rem; padding: 1.1rem 1.3rem;
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-2);
+}
+.momentum__top { display: flex; align-items: baseline; justify-content: space-between; }
+.momentum__k { font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-faint); }
+.momentum__n { font-family: var(--serif); font-size: 1.15rem; font-weight: 500; }
+.chain { display: flex; gap: .5rem; margin: .9rem 0 .7rem; }
+.bead { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--line); flex: none; transition: background .3s var(--ease); }
+.bead--on { background: var(--ink); border-color: var(--ink); }
+.bead--hoje { box-shadow: 0 0 0 3px var(--paper-2), 0 0 0 4.5px var(--gold); }
+.momentum__hint { font-size: .85rem; color: var(--ink-soft); }
+
+/* recompensa: overlay de fechamento */
+.reward {
+  position: fixed; inset: 0; z-index: 80; display: grid; place-items: center;
+  background: rgba(27,26,22,.32); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  opacity: 0; transition: opacity .3s var(--ease); padding: 1.5rem;
+}
+.reward.show { opacity: 1; }
+.reward__card {
+  background: var(--paper-2); border: 1px solid var(--line); border-radius: 20px;
+  padding: 2rem 1.6rem; text-align: center; max-width: 360px; width: 100%; box-shadow: var(--shadow);
+  transform: translateY(12px) scale(.98); transition: transform .35s var(--ease);
+}
+.reward.show .reward__card { transform: none; }
+.reward__mark { font-size: 2rem; color: var(--gold); }
+.reward__t { font-family: var(--serif); font-size: 1.6rem; font-weight: 500; margin-top: .3rem; }
+.reward__s { color: var(--ink-soft); margin-top: .2rem; }
+.reward__in {
+  width: 100%; margin-top: 1.1rem; border: 1px solid var(--line); border-radius: 100px;
+  padding: .7rem 1rem; font-family: var(--sans); font-size: .9rem; background: var(--paper); text-align: center; color: var(--ink);
+}
+.reward__in:focus { outline: none; border-color: var(--ink); }
+
+/* onboarding */
+.onb {
+  position: fixed; inset: 0; z-index: 90; display: grid; place-items: center;
+  background: var(--paper); opacity: 0; transition: opacity .4s var(--ease); padding: 1.6rem; overflow-y: auto;
+}
+.onb.show { opacity: 1; }
+.onb__card { max-width: 420px; width: 100%; }
+.onb__k { font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); }
+.onb__t { font-family: var(--serif); font-size: clamp(1.6rem,6vw,2rem); font-weight: 500; line-height: 1.15; margin: .4rem 0 .8rem; }
+.onb__lead { color: var(--ink-soft); font-size: .98rem; line-height: 1.6; margin-bottom: 1.2rem; }
+.onb__skip { display: block; margin: 1rem auto 0; background: none; border: none; color: var(--ink-faint); font-size: .82rem; cursor: pointer; }
+.onb__skip:hover { color: var(--ink-soft); }
+
+/* campos de formulário */
+.field { margin-top: 1.2rem; }
+.field__k { display: block; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: .5rem; }
+.field__help { font-size: .88rem; color: var(--ink-soft); margin-bottom: .55rem; line-height: 1.5; }
+.field__in, .field__area {
+  width: 100%; border: 1px solid var(--line); border-radius: 12px;
+  padding: .75rem 1rem; font-family: var(--sans); font-size: .98rem; background: var(--paper-2); color: var(--ink);
+}
+.field__area { font-family: var(--reading); resize: vertical; line-height: 1.6; }
+.field__in:focus, .field__area:focus { outline: none; border-color: var(--ink); }
+.field__row { display: flex; align-items: center; gap: .6rem; }
+.field__pre { font-family: var(--reading); color: var(--ink-soft); font-size: .98rem; white-space: nowrap; }
+input[type="time"].field__in { max-width: 170px; }
+
+/* segmento (toggle de rotina) */
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 100px; padding: 3px; gap: 2px; }
+.seg__b { background: none; border: none; cursor: pointer; padding: .45rem 1rem; border-radius: 100px; font-family: var(--sans); font-size: .85rem; color: var(--ink-soft); transition: background .2s, color .2s; }
+.seg__b.is-on { background: var(--ink); color: var(--paper); }

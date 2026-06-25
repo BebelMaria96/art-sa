@@ -190,5 +190,32 @@ const DATA = {
     "Ouça um álbum inteiro, deitado, sem fazer mais nada.",
     "Fotografe dez detalhes que ninguém repara no seu caminho de sempre.",
     "Sente num parque e desenhe (mal) as pessoas que passam."
+  ],
+
+  /* ---------- DEIXA: âncoras sugeridas (habit stacking) ---------- */
+  cueSuggestions: [
+    "tomar o café da manhã",
+    "acordar e me espreguiçar",
+    "escovar os dentes",
+    "preparar meu chá ou café",
+    "sentar na minha mesa",
+    "chegar do trabalho",
+    "colocar os fones de ouvido"
+  ],
+
+  /* ---------- REGRA DE OURO: trocar um hábito (4 passos do livro) ---------- */
+  golden: [
+    { t: "1. Identifique a rotina",
+      h: "Qual é o hábito que rouba o seu tempo de criar? Descreva o que você faz no automático.",
+      ph: "ex: abro o celular e rolo o feed em vez de desenhar" },
+    { t: "2. Experimente com recompensas",
+      h: "O que você realmente busca ali? Distração? Descanso? Alívio da ansiedade? Anote a sua suspeita.",
+      ph: "ex: na verdade quero uma pausa da cobrança" },
+    { t: "3. Isole a deixa",
+      h: "O que dispara a rotina? Geralmente é um destes: horário, lugar, emoção, outras pessoas ou a ação anterior.",
+      ph: "ex: acontece sempre quando sento pra começar e bate o medo" },
+    { t: "4. Tenha um plano",
+      h: "Monte um 'quando isto, então aquilo': mantenha a mesma deixa e recompensa, troque só a rotina.",
+      ph: "ex: quando bater o medo de começar, escrevo uma linha ruim de propósito" }
   ]
 };

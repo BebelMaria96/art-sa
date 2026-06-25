@@ -47,21 +47,42 @@ function currentWeek() {
 function pageText(date) { return Store.get("pages." + (date || today()), ""); }
 function wroteHoje() { return pageText().trim().length > 0; }
 
-/* Streak: dias consecutivos com páginas escritas (terminando hoje ou ontem) */
+/* ---------- Hábito angular: deixa, rotina, recompensa ---------- */
+function getHabit() {
+  return Store.get("habit", { routine: "Páginas Matinais", custom: false, anchor: "tomar o café da manhã", time: "07:30" });
+}
+function saveHabit(h) { Store.set("habit", h); }
+function markDoneToday() { Store.set("done." + today(), true); }
+const dateKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+/* Um dia conta como feito se houve páginas escritas OU a prática foi marcada (dia mínimo viável). */
+function dayDone(key) {
+  return (Store.get("pages." + key, "") + "").trim().length > 0 || Store.get("done." + key, false) === true;
+}
+function feitoHoje() { return dayDone(today()); }
+
+/* Corrente: dias consecutivos com a prática feita (terminando hoje ou ontem) */
 function streak() {
   let count = 0;
   const d = new Date();
-  // se ainda não escreveu hoje, conta a partir de ontem (não quebra o streak durante o dia)
-  if (pageText().trim().length === 0) d.setDate(d.getDate() - 1);
-  while (true) {
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    if (Store.get("pages." + key, "").trim().length > 0) { count++; d.setDate(d.getDate() - 1); }
-    else break;
-  }
+  if (!dayDone(dateKey(d))) d.setDate(d.getDate() - 1); // hoje em aberto não quebra a corrente
+  while (dayDone(dateKey(d))) { count++; d.setDate(d.getDate() - 1); }
   return count;
 }
-function totalDiasEscritos() {
-  return Object.keys(localStorage).filter(k => k.startsWith("atelie.pages.") && (Store.get(k.slice(7), "") + "").trim().length > 0).length;
+/* Últimos n dias para a "corrente" visual */
+function ultimosDias(n) {
+  const out = [];
+  const d = new Date(); d.setDate(d.getDate() - (n - 1));
+  for (let i = 0; i < n; i++) { const key = dateKey(d); out.push({ done: dayDone(key), hoje: key === today() }); d.setDate(d.getDate() + 1); }
+  return out;
+}
+function totalDiasFeitos() {
+  const set = new Set();
+  Object.keys(localStorage).forEach(k => {
+    if (k.startsWith("atelie.pages.") && (Store.get(k.slice(7), "") + "").trim().length > 0) set.add(k.slice(13));
+    if (k.startsWith("atelie.done.") && Store.get(k.slice(7), false) === true) set.add(k.slice(12));
+  });
+  return set.size;
 }
 
 /* ---------- Utilidades de UI ---------- */
@@ -93,7 +114,7 @@ function render() {
   document.querySelectorAll(".nav__item").forEach(b =>
     b.classList.toggle("is-active", b.dataset.route === r ||
       (r === "semana" && b.dataset.route === "jornada") ||
-      (["encontro", "jardim", "foco", "conquistas"].includes(r) && b.dataset.route === "mais")));
+      (["encontro", "jardim", "foco", "conquistas", "trocar", "habito"].includes(r) && b.dataset.route === "mais")));
   window.scrollTo(0, 0);
 }
 window.addEventListener("hashchange", render);
@@ -105,18 +126,46 @@ routes.hoje = (el) => {
   const wk = DATA.weeks[currentWeek() - 1];
   const ref = DATA.tune[dayIndex(DATA.tune.length)];
   const s = streak();
-  const feito = wroteHoje();
+  const habit = getHabit();
+  const feito = feitoHoje();
+  const remOn = Store.get("reminder", null);
+  const chain = ultimosDias(7).map(d =>
+    `<span class="bead ${d.done ? "bead--on" : ""} ${d.hoje ? "bead--hoje" : ""}"></span>`).join("");
+
+  // ROTINA (hábito angular): Páginas abre a escrita; hábito próprio marca como feito
+  const rotinaTile = habit.custom
+    ? `<div class="tile tap ${feito ? "tile--done" : ""}" id="rotina">
+         <div class="tile__txt"><h3>${esc(habit.routine)}</h3>
+           <p>${feito ? "Prática de hoje registrada. ✦" : "Seu hábito angular. Toque ao concluir."}</p></div>
+         <span class="tile__arrow">${feito ? "✦" : "○"}</span>
+       </div>`
+    : `<div class="tile tap ${feito ? "tile--done" : ""}" data-go="paginas">
+         <div class="tile__txt"><h3>Páginas Matinais</h3>
+           <p>${feito ? "Você já escreveu hoje. ✦" : "Três páginas livres para começar o dia."}</p></div>
+         <span class="tile__arrow">${feito ? "✦" : "→"}</span>
+       </div>`;
+
   el.innerHTML = `
     <p class="eyebrow today__date">${esc(prettyDate())}</p>
     <h1 class="greeting">${greeting()}.<br/>Vamos sintonizar?</h1>
-    <div class="streak-pill">☼ <span>sequência</span> <b>${s}</b> ${s === 1 ? "dia" : "dias"}</div>
 
-    <div class="tile tap ${feito ? "tile--done" : ""}" data-go="paginas">
-      <div class="tile__txt">
-        <h3>Páginas Matinais</h3>
-        <p>${feito ? "Você já escreveu hoje. ✦" : "Três páginas livres para começar o dia."}</p>
+    <div class="loop-cue tap" data-go="habito">
+      <span class="loop-cue__k">sua deixa</span>
+      <span class="loop-cue__v">Depois de ${esc(habit.anchor)}${remOn ? `, às ${esc(remOn)}` : ""}.</span>
+      <span class="loop-cue__edit">editar</span>
+    </div>
+
+    ${rotinaTile}
+
+    <div class="momentum">
+      <div class="momentum__top">
+        <span class="momentum__k">sua corrente</span>
+        <span class="momentum__n">${s} ${s === 1 ? "dia" : "dias"}</span>
       </div>
-      <span class="tile__arrow">${feito ? "✦" : "→"}</span>
+      <div class="chain">${chain}</div>
+      <p class="momentum__hint">${feito
+        ? "Corrente mantida hoje. ✦ Pequenos passos, todo dia."
+        : "Um dia mínimo já conta: até uma linha mantém a corrente viva."}</p>
     </div>
 
     <div class="reflection">
@@ -133,8 +182,42 @@ routes.hoje = (el) => {
       <span class="tile__arrow">→</span>
     </div>
   `;
+
+  const rotina = el.querySelector("#rotina");
+  if (rotina) rotina.addEventListener("click", () => {
+    if (feitoHoje()) return;
+    markDoneToday(); reward(); render();
+  });
   bindGo(el);
 };
+
+/* ---------- Recompensa: ritual de fechamento ---------- */
+function reward() {
+  const s = streak();
+  const ov = document.createElement("div");
+  ov.className = "reward";
+  ov.innerHTML = `
+    <div class="reward__card">
+      <div class="reward__mark">✦</div>
+      <p class="reward__t">Feito.</p>
+      <p class="reward__s">Sua corrente: <b>${s} ${s === 1 ? "dia" : "dias"}</b></p>
+      <input class="reward__in" id="rw" placeholder="uma pequena vitória de hoje (opcional)" autocomplete="off" />
+      <div class="btn-row" style="justify-content:center;margin-top:.2rem">
+        <button class="btn btn--sm" id="rw-save">Guardar e fechar</button>
+        <button class="btn btn--ghost btn--sm" id="rw-close">Fechar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  requestAnimationFrame(() => ov.classList.add("show"));
+  const close = () => { ov.classList.remove("show"); setTimeout(() => ov.remove(), 320); };
+  ov.querySelector("#rw-close").onclick = close;
+  ov.querySelector("#rw-save").onclick = () => {
+    const v = ov.querySelector("#rw").value.trim();
+    if (v) { const w = Store.get("wins", []); w.unshift({ id: Date.now(), text: v, ts: today() }); Store.set("wins", w); }
+    close();
+  };
+  ov.addEventListener("click", e => { if (e.target === ov) close(); });
+}
 
 /* ============================================================
    TELA: PÁGINAS MATINAIS
@@ -154,17 +237,22 @@ routes.paginas = (el) => {
       <span class="save-state" id="save">salvo</span>
     </div>
     <textarea class="writing" id="paper" placeholder="Comece por qualquer lugar. Até 'não sei o que escrever' já é um começo…">${esc(saved)}</textarea>
+    <div class="btn-row" id="pg-foot" style="justify-content:center;margin-top:1rem;display:none">
+      <button class="btn btn--sm" id="concluir">Concluir as páginas de hoje ✦</button>
+    </div>
   `;
   const paper = el.querySelector("#paper");
   const bar = el.querySelector("#bar");
   const count = el.querySelector("#count");
   const save = el.querySelector("#save");
+  const foot = el.querySelector("#pg-foot");
   const GOAL = 750; // ~3 páginas à mão
 
   const update = () => {
     const words = paper.value.trim() ? paper.value.trim().split(/\s+/).length : 0;
     count.textContent = `${words} ${words === 1 ? "palavra" : "palavras"}${words >= GOAL ? " · três páginas ✦" : ""}`;
     bar.style.width = Math.min(100, (words / GOAL) * 100) + "%";
+    foot.style.display = words > 0 ? "flex" : "none";
   };
   let t;
   const persist = () => {
@@ -176,6 +264,10 @@ routes.paginas = (el) => {
     }, 500);
   };
   paper.addEventListener("input", () => { update(); persist(); });
+  el.querySelector("#concluir").onclick = () => {
+    clearTimeout(t); Store.set("pages." + key, paper.value); // garante salvo
+    reward(); go("hoje");
+  };
   update();
   setTimeout(() => paper.focus(), 100);
 };
@@ -281,23 +373,16 @@ routes.mais = (el) => {
     <p class="eyebrow">Ferramentas</p>
     <h2 class="h2" style="margin-top:.2rem">Seu ateliê</h2>
     <div class="tool-grid">
+      <div class="tool tap" data-go="habito"><span class="tool__icon">◎</span><div><p class="tool__t">Meu hábito</p><p class="tool__d">Sua deixa, sua rotina e seu lembrete.</p></div></div>
+      <div class="tool tap" data-go="trocar"><span class="tool__icon">⟳</span><div><p class="tool__t">Trocar um hábito</p><p class="tool__d">A Regra de Ouro para destravar a criação.</p></div></div>
       <div class="tool tap" data-go="encontro"><span class="tool__icon">❋</span><div><p class="tool__t">Encontro com o Artista</p><p class="tool__d">Um passeio criativo só seu, toda semana.</p></div></div>
       <div class="tool tap" data-go="jardim"><span class="tool__icon">✿</span><div><p class="tool__t">Jardim de Ideias</p><p class="tool__d">Capture sementes antes que elas fujam.</p></div></div>
       <div class="tool tap" data-go="foco"><span class="tool__icon">◷</span><div><p class="tool__t">Cronômetro de Foco</p><p class="tool__d">Sente e deixe a obra acontecer.</p></div></div>
-      <div class="tool tap" data-go="conquistas"><span class="tool__icon">✦</span><div><p class="tool__t">Conquistas</p><p class="tool__d">Suas vitórias e sua sequência.</p></div></div>
-    </div>
-    <div class="rule"></div>
-    <div class="card card--quiet">
-      <p class="eyebrow">Lembrete diário</p>
-      <p class="muted" style="margin-top:.5rem;font-size:.92rem" id="rem-status">As Páginas Matinais funcionam melhor como hábito.</p>
-      <div class="btn-row" style="margin-top:.9rem">
-        <button class="btn btn--ghost btn--sm" id="rem-btn">Ativar lembrete</button>
-      </div>
+      <div class="tool tap" data-go="conquistas"><span class="tool__icon">✦</span><div><p class="tool__t">Conquistas</p><p class="tool__d">Suas vitórias e sua corrente.</p></div></div>
     </div>
     <p class="faint" style="font-size:.78rem;text-align:center;margin-top:2rem">Tudo é salvo apenas neste aparelho.<br/>Nada sai daqui sem você querer.</p>
   `;
   bindGo(el);
-  setupReminder(el);
 };
 
 /* ============================================================
@@ -445,7 +530,7 @@ routes.conquistas = (el) => {
     <h2 class="h2" style="margin-top:.2rem">O que você já plantou</h2>
     <div class="stat-row">
       <div class="stat"><p class="stat__n">${streak()}</p><p class="stat__l">sequência (dias)</p></div>
-      <div class="stat"><p class="stat__n">${totalDiasEscritos()}</p><p class="stat__l">dias escritos</p></div>
+      <div class="stat"><p class="stat__n">${totalDiasFeitos()}</p><p class="stat__l">dias de prática</p></div>
       <div class="stat"><p class="stat__n">${tarefasFeitas}</p><p class="stat__l">tarefas feitas</p></div>
     </div>
     <p class="eyebrow" style="margin-top:1.8rem">Registrar uma vitória</p>
@@ -479,38 +564,173 @@ routes.conquistas = (el) => {
 };
 
 /* ============================================================
-   Lembrete diário (Notification API)
-   Observação: sem servidor, o lembrete dispara quando o app
-   está aberto perto do horário. Push em segundo plano exige
-   backend (fica para a fase 2).
+   TELA: MEU HÁBITO (deixa, rotina, recompensa, lembrete)
    ============================================================ */
-function setupReminder(el) {
-  const status = el.querySelector("#rem-status");
-  const btn = el.querySelector("#rem-btn");
-  const refresh = () => {
-    const on = Store.get("reminder", null);
-    if (!("Notification" in window)) { status.textContent = "Este navegador não suporta notificações."; btn.style.display = "none"; return; }
-    if (Notification.permission === "granted" && on) {
-      status.textContent = `Lembrete ativo para ${on}. (Funciona com o app aberto.)`;
-      btn.textContent = "Desativar";
-    } else {
-      status.textContent = "As Páginas Matinais funcionam melhor como hábito.";
-      btn.textContent = "Ativar lembrete";
-    }
+routes.habito = (el) => {
+  const h = getHabit();
+  el.innerHTML = `
+    <button class="back" data-go="mais">← Ferramentas</button>
+    <p class="eyebrow">Meu hábito</p>
+    <h2 class="h2" style="margin-top:.2rem">Desenhe seu loop</h2>
+    <p class="lead" style="margin-top:.5rem">Um hábito gruda com uma deixa clara, uma rotina simples e uma recompensa sentida.</p>
+
+    <div class="field">
+      <label class="field__k">Rotina · seu hábito angular</label>
+      <div class="seg" id="seg">
+        <button class="seg__b ${!h.custom ? "is-on" : ""}" data-v="paginas">Páginas Matinais</button>
+        <button class="seg__b ${h.custom ? "is-on" : ""}" data-v="custom">Outro</button>
+      </div>
+      <input class="field__in" id="routine" placeholder="ex: desenhar 10 minutos" value="${h.custom ? esc(h.routine) : ""}" autocomplete="off" style="margin-top:.6rem;${h.custom ? "" : "display:none"}" />
+    </div>
+
+    <div class="field">
+      <label class="field__k">Deixa · o gatilho</label>
+      <div class="field__row"><span class="field__pre">Depois de</span>
+        <input class="field__in" id="anchor" list="cues" value="${esc(h.anchor)}" autocomplete="off" /></div>
+      <datalist id="cues">${DATA.cueSuggestions.map(c => `<option value="${esc(c)}">`).join("")}</datalist>
+    </div>
+
+    <div class="field">
+      <label class="field__k">Horário</label>
+      <input class="field__in" id="time" type="time" value="${esc(h.time)}" />
+    </div>
+
+    <div class="btn-row" style="margin-top:.4rem">
+      <button class="btn" id="save-habit">Salvar</button>
+      <button class="btn btn--ghost" id="rem-btn2">Ativar lembrete</button>
+    </div>
+    <p class="save-state" id="rem-note" style="margin-top:.9rem"></p>
+  `;
+  let custom = h.custom;
+  const routineIn = el.querySelector("#routine");
+  el.querySelector("#seg").addEventListener("click", e => {
+    const b = e.target.closest(".seg__b"); if (!b) return;
+    custom = b.dataset.v === "custom";
+    el.querySelectorAll(".seg__b").forEach(x => x.classList.toggle("is-on", x === b));
+    routineIn.style.display = custom ? "block" : "none";
+    if (custom) routineIn.focus();
+  });
+  el.querySelector("#save-habit").onclick = () => {
+    const anchor = el.querySelector("#anchor").value.trim() || "tomar o café da manhã";
+    const time = el.querySelector("#time").value || "07:30";
+    const routine = custom ? (routineIn.value.trim() || "Minha prática") : "Páginas Matinais";
+    saveHabit({ routine, custom, anchor, time });
+    if (Store.get("reminder", null)) Store.set("reminder", time);
+    toast("Hábito salvo ✦"); go("hoje");
   };
-  btn.onclick = async () => {
-    if (Store.get("reminder", null) && Notification.permission === "granted") {
-      Store.del("reminder"); toast("Lembrete desativado"); refresh(); return;
-    }
+  const note = el.querySelector("#rem-note");
+  const remBtn = el.querySelector("#rem-btn2");
+  const refreshRem = () => {
+    const on = Store.get("reminder", null);
+    if (!("Notification" in window)) { remBtn.style.display = "none"; note.textContent = "Este navegador não suporta notificações."; return; }
+    remBtn.textContent = on ? "Desativar lembrete" : "Ativar lembrete";
+    note.textContent = on ? `Lembrete às ${on}, enquanto o app estiver aberto.` : "Sem lembrete por enquanto.";
+  };
+  remBtn.onclick = async () => {
+    if (Store.get("reminder", null)) { Store.del("reminder"); toast("Lembrete desativado"); refreshRem(); return; }
     const perm = await Notification.requestPermission();
     if (perm === "granted") {
-      Store.set("reminder", "07:30");
-      new Notification("Art Sã", { body: "Pronto! Vou te lembrar das Páginas Matinais. ☼" });
-      toast("Lembrete ativado ☼"); refresh();
-    } else { toast("Permissão negada"); }
+      Store.set("reminder", el.querySelector("#time").value || getHabit().time || "07:30");
+      new Notification("Art Sã", { body: "Pronto! Vou te lembrar da sua prática. ☼" });
+      toast("Lembrete ativado ☼"); refreshRem();
+    } else toast("Permissão negada");
   };
-  refresh();
+  refreshRem();
+  bindGo(el);
+};
+
+/* ============================================================
+   TELA: TROCAR UM HÁBITO (a Regra de Ouro)
+   ============================================================ */
+routes.trocar = (el) => {
+  const draft = Store.get("goldenDraft", {});
+  el.innerHTML = `
+    <button class="back" data-go="mais">← Ferramentas</button>
+    <p class="eyebrow">A Regra de Ouro</p>
+    <h2 class="h2" style="margin-top:.2rem">Trocar um hábito</h2>
+    <p class="lead" style="margin-top:.5rem">Você não apaga um hábito, você troca a rotina. Mantenha a mesma deixa e a mesma recompensa, e ponha a criação no lugar.</p>
+    <div style="margin-top:1.2rem">
+      ${DATA.golden.map((g, i) => `
+        <div class="field">
+          <label class="field__k">${esc(g.t)}</label>
+          <p class="field__help">${esc(g.h)}</p>
+          <textarea class="field__area" data-i="${i}" rows="2" placeholder="${esc(g.ph)}">${esc(draft[i] || "")}</textarea>
+        </div>`).join("")}
+    </div>
+    <div class="btn-row" style="margin-top:.2rem">
+      <button class="btn" id="g-save">Guardar este plano</button>
+    </div>
+    <p class="eyebrow" style="margin-top:1.8rem">Planos guardados</p>
+    <div id="swaps" style="margin-top:.4rem"></div>
+  `;
+  const areas = [...el.querySelectorAll(".field__area")];
+  const saveDraft = () => { const d = {}; areas.forEach(a => d[a.dataset.i] = a.value); Store.set("goldenDraft", d); };
+  areas.forEach(a => a.addEventListener("input", saveDraft));
+  const drawSwaps = () => {
+    const list = Store.get("habitSwaps", []);
+    el.querySelector("#swaps").innerHTML = list.length
+      ? list.map(s => `<div class="seed"><span class="seed__sprout">⟳</span><span class="seed__txt"><b>${esc(s.plan)}</b><br><span class="seed__time">no lugar de: ${esc(s.routine)} · ${esc(s.ts)}</span></span><button class="seed__del" data-id="${s.id}">×</button></div>`).join("")
+      : `<div class="empty"><p class="empty__icon">⟳</p><p>Seu primeiro plano de troca aparece aqui.</p></div>`;
+  };
+  el.querySelector("#g-save").onclick = () => {
+    const routine = areas[0].value.trim(), plan = areas[3].value.trim();
+    if (!routine || !plan) { toast("Preencha ao menos a rotina e o plano"); return; }
+    const list = Store.get("habitSwaps", []);
+    list.unshift({ id: Date.now(), routine, plan, ts: today() });
+    Store.set("habitSwaps", list); Store.del("goldenDraft");
+    areas.forEach(a => a.value = ""); drawSwaps(); toast("Plano guardado ⟳");
+  };
+  el.querySelector("#swaps").addEventListener("click", e => {
+    if (e.target.classList.contains("seed__del")) {
+      Store.set("habitSwaps", Store.get("habitSwaps", []).filter(s => s.id !== +e.target.dataset.id)); drawSwaps();
+    }
+  });
+  drawSwaps();
+  bindGo(el);
+};
+
+/* ============================================================
+   ONBOARDING: desenhar a deixa na primeira vez
+   ============================================================ */
+function maybeOnboard() {
+  if (Store.get("onboarded", false)) return;
+  const ov = document.createElement("div");
+  ov.className = "onb";
+  ov.innerHTML = `
+    <div class="onb__card">
+      <p class="onb__k">Bem-vinda ao Art Sã</p>
+      <h2 class="onb__t">Vamos desenhar seu hábito de criar</h2>
+      <p class="onb__lead">Um hábito gruda com uma <b>deixa</b> clara, uma <b>rotina</b> simples e uma <b>recompensa</b> sentida. Sua rotina começa pelas Páginas Matinais. Falta só a deixa:</p>
+      <label class="field__k">Depois de…</label>
+      <input class="field__in" id="onb-anchor" list="onb-cues" value="tomar o café da manhã" autocomplete="off" />
+      <datalist id="onb-cues">${DATA.cueSuggestions.map(c => `<option value="${esc(c)}">`).join("")}</datalist>
+      <label class="field__k" style="margin-top:.8rem">…às</label>
+      <input class="field__in" id="onb-time" type="time" value="07:30" />
+      <div class="btn-row" style="margin-top:1.3rem;justify-content:center">
+        <button class="btn" id="onb-go">Começar minha prática</button>
+      </div>
+      <button class="onb__skip" id="onb-skip">pular por agora</button>
+    </div>`;
+  document.body.appendChild(ov);
+  requestAnimationFrame(() => ov.classList.add("show"));
+  const finish = () => {
+    const anchor = ov.querySelector("#onb-anchor").value.trim() || "tomar o café da manhã";
+    const time = ov.querySelector("#onb-time").value || "07:30";
+    saveHabit({ routine: "Páginas Matinais", custom: false, anchor, time });
+    Store.set("onboarded", true);
+    ov.classList.remove("show"); setTimeout(() => ov.remove(), 320);
+    render();
+  };
+  ov.querySelector("#onb-go").onclick = finish;
+  ov.querySelector("#onb-skip").onclick = () => { Store.set("onboarded", true); ov.classList.remove("show"); setTimeout(() => ov.remove(), 320); };
 }
+
+/* ============================================================
+   Lembrete diário (Notification API)
+   Sem servidor, o lembrete dispara com o app aberto perto do
+   horário. Push em segundo plano exige backend (fase 2).
+   Configurado em "Meu hábito".
+   ============================================================ */
 // verifica o horário do lembrete enquanto o app está aberto
 setInterval(() => {
   const on = Store.get("reminder", null);
@@ -518,9 +738,9 @@ setInterval(() => {
   const now = new Date();
   const hhmm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
   const last = Store.get("reminderLast", "");
-  if (hhmm === on && last !== today() && !wroteHoje()) {
+  if (hhmm === on && last !== today() && !feitoHoje()) {
     Store.set("reminderLast", today());
-    new Notification("Art Sã ☼", { body: "Um momento para as suas Páginas Matinais." });
+    new Notification("Art Sã ☼", { body: "Um momento para a sua prática de hoje." });
   }
 }, 30000);
 
@@ -542,7 +762,7 @@ document.getElementById("nav").addEventListener("click", e => {
 /* ---------- Início ---------- */
 ensureStart();
 render();
-setTimeout(() => document.getElementById("splash").classList.add("hide"), 2400);
+setTimeout(() => { document.getElementById("splash").classList.add("hide"); maybeOnboard(); }, 2400);
 
 /* ---------- Service worker (offline) ---------- */
 if ("serviceWorker" in navigator) {

@@ -1,5 +1,5 @@
 /* Art Sã - service worker (offline) */
-const CACHE = "artsa-v2";
+const CACHE = "artsa-v3";
 const ASSETS = [
   "./",
   "./index.html",
