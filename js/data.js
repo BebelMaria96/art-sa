@@ -6,140 +6,177 @@
 
 const DATA = {
 
-  /* ---------- JORNADA: 12 semanas ----------
-     Inspirada na progressão de temas do método de recuperação
-     criativa, porém com textos e tarefas autorais.            */
+  /* ---------- JORNADA: 12 semanas, 7 dias cada ----------
+     Cada semana tem 7 tarefas, uma por dia. As Páginas
+     Matinais são a prática diária, feita todos os dias,
+     à parte das 7 tarefas.                                   */
   weeks: [
     {
       n: 1, theme: "Segurança",
       essence: "Criar um lugar seguro dentro de você para a criatividade voltar.",
       intro: "Toda prática começa com permissão. Antes de qualquer obra, é preciso um chão firme, um espaço onde a pessoa criativa em você se sinta livre para errar, brincar e recomeçar. Esta semana é sobre baixar a guarda e reabrir a porta.",
-      tasks: [
-        "Escreva suas Páginas Matinais todos os dias, sem reler nem corrigir.",
-        "Liste três coisas que disseram sobre o seu talento e que ainda te machucam. Ao lado de cada uma, escreva uma resposta gentil sua.",
-        "Marque seu primeiro Encontro com o Artista: algo pequeno e só seu.",
-        "Termine a frase, sem pensar: 'Se não fosse arriscado, eu criaria…'."
+      days: [
+        "Liste três coisas que disseram sobre o seu talento e que ainda doem. Responda a cada uma com carinho.",
+        "Descreva um lugar, real ou imaginado, onde você se sente segura para criar.",
+        "Termine, sem pensar: 'Se não fosse arriscado, eu criaria…'.",
+        "Identifique a voz crítica da sua cabeça e descreva de quem ela é a cópia.",
+        "Crie algo pequeno e propositalmente imperfeito, só seu.",
+        "Escreva uma autorização sua: 'Eu me permito criar mesmo sem…'.",
+        "Encontro com o Artista: faça um passeio pequeno e só seu."
       ]
     },
     {
       n: 2, theme: "Identidade",
       essence: "Lembrar quem você é quando ninguém está olhando.",
       intro: "Aos poucos a gente troca o que ama pelo que é aceitável. Esta semana é um exercício de memória: recuperar os gostos, as manias e as curiosidades que são genuinamente suas, antes das opiniões alheias entrarem na sala.",
-      tasks: [
-        "Liste cinco interesses 'inúteis' que te dão prazer e que você abandonou.",
-        "Descreva uma versão de você aos dez anos: o que ela criava sem medo?",
-        "Identifique uma pessoa que drena sua energia criativa e observe o padrão sem julgar.",
-        "Escolha uma cor, uma música e um cheiro que são a sua cara hoje."
+      days: [
+        "Liste cinco interesses 'inúteis' que te dão prazer e que você largou.",
+        "Descreva você aos dez anos: o que ela criava sem medo?",
+        "Escolha uma cor, uma música e um cheiro que são a sua cara hoje.",
+        "Note uma pessoa que drena sua energia criativa, sem julgar o padrão.",
+        "Retome por 15 minutos um gosto antigo que você abandonou.",
+        "Escreva sobre uma obra que te deu vontade de criar.",
+        "Encontro com o Artista: vá a um lugar que te lembra quem você é."
       ]
     },
     {
       n: 3, theme: "Poder",
       essence: "Reconhecer a raiva e a inveja como bússolas, não como inimigas.",
       intro: "Raiva mostra fronteiras. Inveja aponta desejos. Esta semana convida você a parar de empurrar essas emoções para baixo do tapete e começar a lê-las como mapas do que você realmente quer fazer.",
-      tasks: [
+      days: [
         "Complete: 'Tenho inveja de quem…' e veja que desejo seu mora ali.",
-        "Escreva uma carta (que não vai enviar) para alguém que duvidou de você.",
-        "Recupere um sonho criativo antigo e dê a ele um primeiro passo de 10 minutos.",
-        "Anote uma vez em que a raiva te mostrou um limite importante."
+        "Escreva uma carta, que não vai enviar, a alguém que duvidou de você.",
+        "Recupere um sonho criativo antigo e dê um primeiro passo de 10 minutos.",
+        "Anote uma vez em que a raiva te mostrou um limite importante.",
+        "Liste o que você faria se tivesse certeza de que ninguém criticaria.",
+        "Faça algo com a sua assinatura, do seu jeito, sem pedir licença.",
+        "Encontro com o Artista: escolha um programa que te dá energia."
       ]
     },
     {
       n: 4, theme: "Integridade",
       essence: "Alinhar o que você faz com o que você sente ser verdadeiro.",
       intro: "Esta é a semana do silêncio escolhido. Ao reduzir o ruído de fora, fica mais fácil ouvir o que é seu. Pode incomodar, e é justamente o desconforto que mostra onde você andava se traindo.",
-      tasks: [
-        "Faça uma semana de 'jejum de leitura': menos feed, menos notícias, menos rolagem.",
-        "Note onde, no dia, você diz 'sim' querendo dizer 'não'.",
+      days: [
+        "Comece um 'jejum de leitura': menos feed, menos rolagem, por um dia.",
+        "Note onde, hoje, você diz 'sim' querendo dizer 'não'.",
         "Descreva como seria um dia vivido inteiramente do seu jeito.",
-        "Escolha um objeto que represente a sua verdade criativa e deixe-o à vista."
+        "Escolha um objeto que represente a sua verdade criativa e deixe à vista.",
+        "Escreva o que muda em você depois de muito tempo de tela.",
+        "Tire 20 minutos de silêncio total e anote o que surgiu.",
+        "Encontro com o Artista: faça algo em silêncio, sem registrar nas redes."
       ]
     },
     {
       n: 5, theme: "Possibilidade",
       essence: "Abrir espaço para que o inesperado possa acontecer.",
       intro: "Muita gente trava não por falta de talento, mas por excesso de controle. Esta semana é sobre afrouxar as mãos: deixar a obra te surpreender em vez de obrigá-la a obedecer.",
-      tasks: [
-        "Descreva seu projeto dos sonhos como se o dinheiro e o medo não existissem.",
-        "Construa um pequeno altar ou canto dedicado só à sua criação.",
-        "Faça algo no seu ofício de um jeito propositalmente 'errado'.",
-        "Liste limites que você trata como definitivos e questione um deles."
+      days: [
+        "Descreva seu projeto dos sonhos como se dinheiro e medo não existissem.",
+        "Monte um pequeno canto ou altar dedicado só à sua criação.",
+        "Faça algo do seu ofício de um jeito propositalmente 'errado'.",
+        "Liste limites que você trata como definitivos e questione um deles.",
+        "Escreva dez ideias ruins de propósito, rápido, sem filtrar.",
+        "Experimente um material ou ferramenta que você nunca usou.",
+        "Encontro com o Artista: explore um lugar novo sem destino fixo."
       ]
     },
     {
       n: 6, theme: "Abundância",
       essence: "Trocar a mentalidade de escassez por generosidade.",
       intro: "A criatividade não acaba quando você usa: ela cresce. Esta semana é sobre a relação entre dinheiro, prazer e merecimento, e sobre se permitir receber sem culpa o que nutre a sua arte.",
-      tasks: [
+      days: [
         "Anote sua reação emocional ao gastar com a sua criatividade.",
-        "Compre (ou se dê) algo pequeno e prazeroso que você costuma negar.",
+        "Dê a si mesma algo pequeno e prazeroso que você costuma negar.",
         "Liste cinco coisas gratuitas que enchem o seu tanque criativo.",
-        "Observe onde você diz 'não tenho tempo' querendo dizer 'não me priorizo'."
+        "Note onde você diz 'não tenho tempo' querendo dizer 'não me priorizo'.",
+        "Agradeça, por escrito, a três recursos criativos que você já tem.",
+        "Gaste 30 minutos só brincando, sem nenhuma meta de resultado.",
+        "Encontro com o Artista: visite um lugar farto de cor, som ou sabor."
       ]
     },
     {
       n: 7, theme: "Conexão",
       essence: "Voltar a ouvir antes de tentar controlar o resultado.",
       intro: "Criar é mais escutar do que forçar. Esta semana convida você a sair do modo 'fabricar' e entrar no modo 'receber', confiando que ideias chegam quando há espaço e atenção.",
-      tasks: [
-        "Pratique 10 minutos de ócio atento por dia, sem tela, só observando.",
+      days: [
+        "Pratique 10 minutos de ócio atento, sem tela, só observando.",
         "Faça um esboço rápido sem nenhuma intenção de que fique bom.",
-        "Identifique uma crítica interna recorrente e dê um nome bobo a ela.",
-        "Capte três 'sementes' de ideia no Jardim de Ideias sem julgá-las."
+        "Dê um nome bobo à sua crítica interna mais recorrente.",
+        "Capte três sementes de ideia no Jardim de Ideias, sem julgar.",
+        "Escute uma pessoa ou um som com atenção total por alguns minutos.",
+        "Crie a partir de algo que você recebeu hoje, não inventou.",
+        "Encontro com o Artista: vá a um lugar onde possa só observar."
       ]
     },
     {
       n: 8, theme: "Força",
       essence: "Atravessar perdas e recomeços sem abandonar a prática.",
       intro: "Todo caminho criativo tem reveses. Esta semana é sobre resiliência: sustentar a prática mesmo quando ela não está 'rendendo', e entender que persistir é, em si, talento.",
-      tasks: [
-        "Escreva sobre um projeto que você desistiu e o que aprendeu com ele.",
-        "Retome 15 minutos de algo abandonado, sem pressão de terminar.",
+      days: [
+        "Escreva sobre um projeto que você abandonou e o que aprendeu.",
+        "Retome 15 minutos de algo largado, sem pressão de terminar.",
         "Liste três vezes em que você continuou apesar do medo.",
-        "Defina o menor passo possível para amanhã. Pequeno de propósito."
+        "Defina o menor passo possível para amanhã. Pequeno de propósito.",
+        "Escreva uma carta de incentivo da sua versão mais forte para hoje.",
+        "Faça uma coisa difícil por só cinco minutos e pare por aí.",
+        "Encontro com o Artista: faça algo que te faz sentir capaz."
       ]
     },
     {
       n: 9, theme: "Compaixão",
       essence: "Tratar o seu bloqueio com gentileza em vez de chicote.",
       intro: "Bloqueio quase nunca é preguiça. Costuma ser medo. Esta semana troca a cobrança pela compaixão, porque ninguém floresce sob ameaça. Inclusive você.",
-      tasks: [
-        "Escreva para você mesmo como escreveria para um amigo travado.",
+      days: [
+        "Escreva para você como escreveria para um amigo travado.",
         "Identifique o medo por trás de um adiamento recente.",
-        "Faça algo criativo 'mal feito' de propósito, só pra quebrar o gelo.",
-        "Perdoe-se, por escrito, por uma obra que você nunca terminou."
+        "Faça algo 'mal feito' de propósito, só pra quebrar o gelo.",
+        "Perdoe-se, por escrito, por uma obra que você nunca terminou.",
+        "Liste três gentilezas que você faria por um artista iniciante.",
+        "Crie algo lento hoje, no ritmo do cuidado, sem pressa.",
+        "Encontro com o Artista: faça um programa que te acalma."
       ]
     },
     {
       n: 10, theme: "Autoproteção",
       essence: "Cuidar da chama para que ela não seja apagada por dentro ou por fora.",
       intro: "Existem formas de sabotar a própria criatividade: excesso de trabalho, comparação, pressa. Esta semana é sobre reconhecer seus venenos preferidos e construir defesas gentis contra eles.",
-      tasks: [
+      days: [
         "Liste seus 'venenos' criativos (comparação, pressa, perfeccionismo…).",
         "Escolha uma fronteira para proteger seu tempo de criar e teste-a.",
         "Note como você se sente depois de muito tempo de tela.",
-        "Crie um pequeno ritual de início para entrar no estado de criar."
+        "Crie um pequeno ritual de início para entrar no estado de criar.",
+        "Diga 'não' a uma demanda que rouba seu tempo de criar.",
+        "Identifique o que apaga a sua chama e planeje uma defesa gentil.",
+        "Encontro com o Artista: vá a um lugar que te recarrega de verdade."
       ]
     },
     {
       n: 11, theme: "Autonomia",
       essence: "Sustentar a prática como parte de quem você é, sem depender de aplauso.",
       intro: "Esta semana é sobre maturidade criativa: criar pelo prazer e pela necessidade, e não pela aprovação. Quando a prática vira identidade, ela para de pedir permissão.",
-      tasks: [
+      days: [
         "Defina como seria a sua prática se ninguém nunca a visse.",
         "Comemore, por escrito, um progresso que você costuma minimizar.",
         "Estabeleça um ritmo realista de criação para as próximas semanas.",
-        "Diga 'não' a uma demanda que rouba seu tempo de criar."
+        "Crie algo só pelo prazer, sem mostrar a ninguém.",
+        "Escreva o que a sua criação te dá, mesmo sem aplauso.",
+        "Escolha um próximo projeto que seja seu, não dos outros.",
+        "Encontro com o Artista: faça um programa que é a sua cara."
       ]
     },
     {
       n: 12, theme: "Confiança",
       essence: "Dar o salto: confiar no processo mais do que na garantia.",
       intro: "Você chegou ao fim do começo. Esta semana não fecha um ciclo: abre uma vida criativa. É sobre confiar que, ao aparecer todo dia, o caminho aparece junto. A arte fica inevitável.",
-      tasks: [
+      days: [
         "Escreva uma carta da sua versão futura, já vivendo de forma criativa.",
         "Defina o primeiro projeto que você vai começar 'de verdade'.",
         "Releia as Páginas Matinais que se sentir à vontade para reler.",
-        "Comprometa-se com um próximo Encontro com o Artista. O caminho continua."
+        "Liste o que mudou em você nestas doze semanas.",
+        "Escreva a frase que você quer levar daqui pra frente.",
+        "Dê o primeiro passo concreto do seu próximo projeto, hoje.",
+        "Encontro com o Artista: comprometa-se com o próximo. O caminho continua."
       ]
     }
   ],

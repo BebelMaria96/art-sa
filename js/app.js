@@ -237,22 +237,23 @@ routes.paginas = (el) => {
       <span class="save-state" id="save">salvo</span>
     </div>
     <textarea class="writing" id="paper" placeholder="Comece por qualquer lugar. Até 'não sei o que escrever' já é um começo…">${esc(saved)}</textarea>
-    <div class="btn-row" id="pg-foot" style="justify-content:center;margin-top:1rem;display:none">
-      <button class="btn btn--sm" id="concluir">Concluir as páginas de hoje ✦</button>
+    <div class="btn-row" id="pg-foot" style="justify-content:center;margin-top:1.2rem;gap:.6rem">
+      <button class="btn" id="salvar">Salvar</button>
+      <button class="btn btn--ghost btn--sm" id="concluir" style="display:none">Concluir o dia ✦</button>
     </div>
   `;
   const paper = el.querySelector("#paper");
   const bar = el.querySelector("#bar");
   const count = el.querySelector("#count");
   const save = el.querySelector("#save");
-  const foot = el.querySelector("#pg-foot");
+  const concluir = el.querySelector("#concluir");
   const GOAL = 750; // ~3 páginas à mão
 
   const update = () => {
     const words = paper.value.trim() ? paper.value.trim().split(/\s+/).length : 0;
     count.textContent = `${words} ${words === 1 ? "palavra" : "palavras"}${words >= GOAL ? " · três páginas ✦" : ""}`;
     bar.style.width = Math.min(100, (words / GOAL) * 100) + "%";
-    foot.style.display = words > 0 ? "flex" : "none";
+    concluir.style.display = words > 0 ? "inline-flex" : "none";
   };
   let t;
   const persist = () => {
@@ -264,7 +265,11 @@ routes.paginas = (el) => {
     }, 500);
   };
   paper.addEventListener("input", () => { update(); persist(); });
-  el.querySelector("#concluir").onclick = () => {
+  el.querySelector("#salvar").onclick = () => {
+    clearTimeout(t); Store.set("pages." + key, paper.value);
+    save.textContent = "salvo no aparelho"; toast("Salvo no aparelho ✦");
+  };
+  concluir.onclick = () => {
     clearTimeout(t); Store.set("pages." + key, paper.value); // garante salvo
     reward(); go("hoje");
   };
@@ -292,7 +297,7 @@ routes.jornada = (el) => {
             <h3>${esc(w.theme)}</h3>
             <p>${esc(w.essence)}</p>
           </div>
-          <span class="week-tag">${w.n === cur ? "agora" : (done > 0 ? done + "/" + w.tasks.length : "")}</span>
+          <span class="week-tag">${w.n === cur ? "agora" : (done > 0 ? done + "/" + w.days.length : "")}</span>
         </div>`;
       }).join("")}
     </div>
@@ -306,6 +311,8 @@ routes.semana = (el, param) => {
   const w = DATA.weeks[n - 1];
   const state = Store.get("tasks", {});
   const wkState = state[n] || {};
+  const feito = feitoHoje();
+  const dias = ["Dia 1", "Dia 2", "Dia 3", "Dia 4", "Dia 5", "Dia 6", "Dia 7"];
   el.innerHTML = `
     <button class="back" data-go="jornada">← Jornada</button>
     <p class="eyebrow">Semana ${w.n}</p>
@@ -314,17 +321,26 @@ routes.semana = (el, param) => {
     <div class="card card--quiet" style="margin-top:1.3rem">
       <p class="reflection__b" style="font-family:var(--reading)">${esc(w.intro)}</p>
     </div>
-    <p class="eyebrow" style="margin-top:1.8rem">Tarefas da semana</p>
-    <div id="tasks" style="margin-top:.4rem">
-      ${w.tasks.map((tk, i) => `
-        <div class="task ${wkState[i] ? "task--done" : ""}" data-i="${i}">
-          <span class="task__box">${CHECK}</span>
-          <span class="task__txt">${esc(tk)}</span>
-        </div>`).join("")}
+
+    <p class="eyebrow" style="margin-top:1.8rem">A prática diária</p>
+    <div class="tile tap ${feito ? "tile--done" : ""}" data-go="paginas" style="margin-top:.4rem">
+      <div class="tile__txt">
+        <h3>Páginas Matinais</h3>
+        <p>${feito ? "Feito hoje. ✦ Volte amanhã." : "Todo dia, antes das tarefas da semana."}</p>
+      </div>
+      <span class="tile__arrow">${feito ? "✦" : "→"}</span>
     </div>
-    <div class="dot-rule">· · ·</div>
-    <div class="btn-row" style="justify-content:center">
-      <button class="btn btn--ghost btn--sm" data-go="encontro">Marcar Encontro com o Artista</button>
+
+    <p class="eyebrow" style="margin-top:1.8rem">As 7 tarefas da semana</p>
+    <div id="tasks" style="margin-top:.4rem">
+      ${w.days.map((tk, i) => `
+        <div class="task day-row ${wkState[i] ? "task--done" : ""}" data-i="${i}">
+          <span class="task__box">${CHECK}</span>
+          <div class="day-row__body">
+            <span class="day-row__n">${dias[i]}</span>
+            <span class="task__txt">${esc(tk)}</span>
+          </div>
+        </div>`).join("")}
     </div>
   `;
   el.querySelector("#tasks").addEventListener("click", e => {
@@ -389,44 +405,107 @@ routes.mais = (el) => {
    TELA: ENCONTRO COM O ARTISTA
    ============================================================ */
 routes.encontro = (el) => {
-  const log = Store.get("artistLog", []);
   const idea = DATA.artistDates[dayIndex(DATA.artistDates.length)];
+  let cur = idea;
+  let photoData = null;
   el.innerHTML = `
     <button class="back" data-go="mais">← Ferramentas</button>
     <p class="eyebrow">Encontro com o Artista</p>
     <h2 class="h2" style="margin-top:.2rem">Um encontro só seu</h2>
-    <p class="lead" style="margin-top:.5rem">Uma vez por semana, leve a criança criativa pra passear. Sozinho, sem render nada. Só nutrir.</p>
+    <p class="lead" style="margin-top:.5rem">Uma vez por semana, leve a sua criança criativa pra passear. Sozinha, sem render nada. Só nutrir.</p>
+
     <div class="card" style="margin-top:1.3rem">
       <p class="reflection__k">Sugestão de hoje</p>
-      <p class="reflection__t" style="font-size:1.2rem">${esc(idea)}</p>
+      <p class="reflection__t" id="idea" style="font-size:1.2rem">${esc(idea)}</p>
       <div class="btn-row" style="margin-top:.8rem">
-        <button class="btn btn--sm" id="mark">Vou nesse ✦</button>
         <button class="btn btn--ghost btn--sm" id="other">Outra ideia ↻</button>
       </div>
     </div>
+
+    <p class="eyebrow" style="margin-top:1.8rem">Registrar este encontro</p>
+    <div class="field">
+      <textarea class="field__area" id="enc-note" rows="3" placeholder="como foi? o que você viu, sentiu, levou daqui?"></textarea>
+    </div>
+    <input type="file" id="enc-photo" accept="image/*" hidden />
+    <div id="enc-prev" class="photo-prev"></div>
+    <div class="btn-row" style="margin-top:.8rem">
+      <button class="btn btn--ghost btn--sm" id="enc-add-photo">＋ Adicionar foto</button>
+      <button class="btn btn--sm" id="enc-save">Guardar encontro ❋</button>
+    </div>
+
     <p class="eyebrow" style="margin-top:1.8rem">Seus encontros</p>
-    <div id="log" style="margin-top:.4rem">${renderArtistLog(log)}</div>
+    <div id="log" style="margin-top:.4rem"></div>
   `;
-  let cur = idea;
+  const ideaEl = el.querySelector("#idea");
+  const noteEl = el.querySelector("#enc-note");
+  const fileEl = el.querySelector("#enc-photo");
+  const prevEl = el.querySelector("#enc-prev");
+
   el.querySelector("#other").onclick = () => {
-    cur = DATA.artistDates[Math.floor((cur.length * 7) % DATA.artistDates.length)];
-    // simples rotação determinística sem random
     const idx = (DATA.artistDates.indexOf(cur) + 1) % DATA.artistDates.length;
-    cur = DATA.artistDates[idx];
-    el.querySelector(".reflection__t").textContent = cur;
+    cur = DATA.artistDates[idx]; ideaEl.textContent = cur;
   };
-  el.querySelector("#mark").onclick = () => {
-    const l = Store.get("artistLog", []);
-    l.unshift({ id: Date.now(), idea: cur, ts: today() });
-    Store.set("artistLog", l);
-    el.querySelector("#log").innerHTML = renderArtistLog(l);
-    toast("Encontro marcado ❋");
+
+  el.querySelector("#enc-add-photo").onclick = () => fileEl.click();
+  fileEl.onchange = () => {
+    const f = fileEl.files[0]; if (!f) return;
+    readImageScaled(f, 1200, data => {
+      photoData = data;
+      prevEl.innerHTML = `<img src="${data}" alt="prévia da foto" /><button class="photo-prev__del" id="enc-rm">remover foto</button>`;
+      prevEl.querySelector("#enc-rm").onclick = () => { photoData = null; prevEl.innerHTML = ""; fileEl.value = ""; };
+    });
   };
+
+  const drawLog = () => { el.querySelector("#log").innerHTML = renderArtistLog(Store.get("artistLog", [])); };
+  el.querySelector("#enc-save").onclick = () => {
+    const note = noteEl.value.trim();
+    if (!note && !photoData) { toast("Escreva algo ou adicione uma foto"); return; }
+    const list = Store.get("artistLog", []);
+    list.unshift({ id: Date.now(), idea: cur, note, photo: photoData, ts: today() });
+    try { Store.set("artistLog", list); }
+    catch (err) { toast("Sem espaço para guardar a foto. Tente uma menor."); return; }
+    noteEl.value = ""; photoData = null; prevEl.innerHTML = ""; fileEl.value = "";
+    drawLog(); toast("Encontro guardado ❋");
+  };
+
+  el.querySelector("#log").addEventListener("click", e => {
+    if (e.target.classList.contains("seed__del")) {
+      Store.set("artistLog", Store.get("artistLog", []).filter(x => x.id !== +e.target.dataset.id));
+      drawLog();
+    }
+  });
+  drawLog();
   bindGo(el);
 };
 function renderArtistLog(log) {
   if (!log.length) return `<div class="empty"><p class="empty__icon">❋</p><p>Seu primeiro encontro ainda vai acontecer.</p></div>`;
-  return log.map(e => `<div class="seed"><span class="seed__sprout">❋</span><span class="seed__txt">${esc(e.idea)}<br><span class="seed__time">${esc(e.ts)}</span></span></div>`).join("");
+  return log.map(e => `
+    <div class="enc">
+      <button class="enc__del seed__del" data-id="${e.id}" aria-label="apagar">×</button>
+      ${e.photo ? `<img class="enc__img" src="${e.photo}" alt="foto do encontro" />` : ""}
+      <div class="enc__body">
+        <p class="enc__idea">❋ ${esc(e.idea)}</p>
+        ${e.note ? `<p class="enc__note">${esc(e.note)}</p>` : ""}
+        <span class="enc__time">${esc(e.ts)}</span>
+      </div>
+    </div>`).join("");
+}
+
+/* Lê uma imagem e devolve um dataURL reduzido (para caber no localStorage). */
+function readImageScaled(file, maxDim, cb) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+      const c = document.createElement("canvas"); c.width = w; c.height = h;
+      c.getContext("2d").drawImage(img, 0, 0, w, h);
+      cb(c.toDataURL("image/jpeg", 0.82));
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 /* ============================================================
